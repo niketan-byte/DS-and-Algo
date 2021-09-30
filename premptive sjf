@@ -1,0 +1,114 @@
+#include <iostream>
+#include <algorithm> 
+#include <iomanip>
+#include <string.h> 
+using namespace std;
+
+struct process {
+     int pid,AT,BT,ST,CT,TAT,WT,RT;
+	 };
+
+int main() {
+
+     int n;
+    struct process p[100];
+    float avg_TAT;
+    float avg_WT;
+    float avg_RT;
+    int total_TAT = 0;
+    int total_WT = 0;
+    int total_RT = 0;
+    int burst_remaining[100];
+    int is_completed[100];
+    memset(is_completed,0,sizeof(is_completed));
+
+    cout << setprecision(2) << fixed;
+
+    cout<<" Please Enter the number of processes: ";
+    cin>>n;
+
+    for(int i = 0; i < n; i++) {
+        cout<<"Enter  the arrival time of process "<<i+1<<": ";
+        cin>>p[i].AT;
+        cout<<"Enter  the burst time of process "<<i+1<<": ";
+        cin>>p[i].BT;
+        p[i].pid = i+1;
+        burst_remaining[i] = p[i].BT;
+        cout<<endl;
+    }
+
+    int current_time = 0;
+    int completed = 0;
+    int prev = 0;
+
+    while(completed != n) {
+        int idx = -1;
+        int min = 10000000;
+        for(int i = 0; i < n; i++) {
+            if(p[i].AT <= current_time && is_completed[i] == 0) {
+                if(burst_remaining[i] < min) {
+                    min = burst_remaining[i];
+                    idx = i;
+                }
+                if(burst_remaining[i] == min) {
+                    if(p[i].AT < p[idx].AT) {
+                        min = burst_remaining[i];
+                        idx = i;
+                    }
+                }
+            }
+        }
+
+        if(idx != -1) {
+            if(burst_remaining[idx] == p[idx].BT) {
+                p[idx].ST = current_time;
+            }
+            burst_remaining[idx] -= 1;
+            current_time++;
+            prev = current_time;
+            
+            if(burst_remaining[idx] == 0) {
+                p[idx].CT = current_time;
+                p[idx].TAT= p[idx].CT - p[idx].AT;
+                p[idx].WT = p[idx].TAT - p[idx].BT;
+                p[idx].RT = p[idx].ST - p[idx].AT;
+
+                total_TAT += p[idx].TAT;
+            total_WT += p[idx].WT;
+            total_RT += p[idx].RT;
+
+
+                is_completed[idx] = 1;
+                completed++;
+            }
+        }
+        else {
+             current_time++;
+        }  
+    }
+    int min_AT = 10000000;
+    int max_CT = -1;
+    for(int i = 0; i < n; i++) {
+        min_AT = min(min_AT,p[i].AT);
+        max_CT = max(max_CT,p[i].CT);
+    }
+
+    avg_TAT = (float) total_TAT / n;
+    avg_WT = (float) total_WT / n;
+    avg_RT = (float) total_RT / n;
+
+    cout<<endl;
+    cout<<"Pid\t"<<"AT\t"<<"BT\t"<<"CT\t"<<"TAT\t"<<"WT\t"<<"RT\t"<<"\n"<<endl;
+
+    for(int i = 0; i < n; i++) {
+        cout<<p[i].pid<<"\t"<<p[i].AT<<"\t"<<p[i].BT<<"\t"<<p[i].CT<<"\t"<<p[i].TAT<<"\t"<<p[i].WT<<"\t"<<p[i].RT<<"\t"<<"\n"<<endl;
+    }
+    cout<<"Average Turnaround Time = "<<avg_TAT<<endl;
+    cout<<"Average Waiting Time = "<<avg_WT<<endl;
+    cout<<"Average Response Time = "<<avg_RT<<endl;
+
+
+}
+
+
+   
